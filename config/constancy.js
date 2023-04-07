@@ -1,0 +1,1 @@
+export const API_URL = 'https://port-0-ejin-onetrip-server-du3j2blg4h8hb4.sel3.cloudtype.app'
