@@ -9,14 +9,21 @@ import userIcon from '../assets/icon/user.png';
 function Main(props){
   const [product,setProduct] = useState([]);
   const [review,setReview] = useState([]);
+  const [runItem,setRun] = useState([]);
+
   useEffect(()=>{
     axios.get(`${API_URL}/product`).then((result)=>{
       setProduct(result.data.product)
     }).catch((error)=>{
       console.error(error)
     })
-    axios.get(`${API_URL}/review`).then((result)=>{
+    axios.get(`${API_URL}/reviews`).then((result)=>{
       setReview(result.data.review)
+    }).catch((error)=>{
+      console.error(error)
+    })
+    axios.get(`${API_URL}/productdate`).then((result)=>{
+      setRun(result.data.product);
     }).catch((error)=>{
       console.error(error)
     })
@@ -56,6 +63,7 @@ function Main(props){
                       onPress={()=>{props.navigation.navigate("Trip",{id:prod.id})}}
                     >
                       <View style={styles.productsBox}>
+                        {prod.soldout == 1 && <View style={styles.soldoutBox}><Text style={styles.soldoutText}>예약마감</Text></View>}
                         <Image source={{uri:`${API_URL}/${prod.imageUrl}`}} style={styles.productsImg} />
                         <View style={styles.productsInfo}>
                           <Text style={styles.tripArea}>{prod.p_area}</Text>
@@ -71,18 +79,37 @@ function Main(props){
             {review[0] && (
               <>
                 <View style={styles.reviewWrap}>
-                  <Text style={styles.reviewTitle}> {review[0].r_title}</Text>
                   <Image source={{uri:`${API_URL}/${review[0].r_imageUrl}`}} style={styles.reviewImage} resizeMode={'cover'}/>
                   <View style={styles.reviewContent}>
-                    <Text style={styles.reviewText}>{review[0].r_text}</Text>
+                    <Text style={styles.reviewTitle}>{review[0].r_title}</Text>
                     <View style={styles.reviewUser}>
                       <Image source={userIcon} style={styles.reviewIcon} />
                       <Text style={styles.reviewUserName}>{review[0].user_name}</Text>
                     </View>
+                    <Text style={styles.reviewText}>{review[0].r_text}</Text>
                   </View>
                 </View>
               </>
             )}
+            <View style={styles.runWrap}>
+              <Text style={styles.wrapTitle}>마감 임박 여행</Text>
+                {runItem && runItem.map((runs)=>{
+                  return(
+                    <TouchableOpacity
+                      key={runs.id}
+                      onPress={()=>{props.navigation.navigate("Trip",{id:runs.id})}}
+                    >
+                      <View style={styles.runBox}>
+                        <Image source={{uri:`${API_URL}/${runs.imageUrl}`}} style={styles.runImage} resizeMode={'cover'}/>
+                        <View style={styles.runTextBox}>
+                          <Text style={styles.runCount}>잔여 수량 &#91; {runs.count} &#93;</Text>
+                          <Text style={styles.runTitle}>{runs.p_name}</Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  )
+                })}
+            </View>
         </View>
       </ScrollView>
       
@@ -113,7 +140,7 @@ const styles = StyleSheet.create({
     width:'100%',
     height:'100%',
     alignItems: 'center',
-    backgroundColor: '#EEF4F7',
+    backgroundColor: '#fff',
   },
   mainContainer:{
     width:'100%',
@@ -133,7 +160,7 @@ const styles = StyleSheet.create({
   productsWrap:{
     width:'100%',
     alignItems:'center',
-    marginTop:15,
+    marginTop:35,
   },
   productsContainer:{
     width:'90%',
@@ -141,14 +168,31 @@ const styles = StyleSheet.create({
     justifyContent:'space-between',
     flexWrap:'wrap',
     backgroundColor:'#fff',
-    borderRadius:15,
-    padding:20
   },
   productsBoxWrap:{
     width:'47%',
   },
+  soldoutBox:{
+    position:'absolute',
+    top:0,
+    left:0,
+    width:'100%',
+    height:'100%',
+    backgroundColor:'#ffffffaa',
+    zIndex:999,
+  },
+  soldoutText:{
+    width:'100%',
+    height:130,
+    lineHeight:130,
+    textAlign:'center',
+    fontSize:16,
+    fontWeight:900,
+    color:'#dd1e1e'
+  },
   productsBox:{
-    marginTop:15
+    marginTop:15,
+    position:'relative'
   },
   productsImg:{
     width:'100%',
@@ -173,7 +217,7 @@ const styles = StyleSheet.create({
   },
   gnbWrap:{
     width:'90%',
-    height:70,
+    height:55,
     margin:10,
     borderRadius:12,
     flexDirection:'row',
@@ -194,42 +238,102 @@ const styles = StyleSheet.create({
     textAlign:'center'
   },
   reviewWrap:{
-    width:'90%',
-    borderRadius:15,
-    marginTop:15,
-    padding:20,
-    backgroundColor:'#fff',
-    overflow:'hidden'
-  },
-  reviewImage:{
     width:'100%',
-    height:150,
+    marginTop:35,
     overflow:'hidden',
-    borderRadius:15,
-    marginTop:15
   },
   reviewTitle:{
     fontSize:18,
     fontWeight:600,
-    color:'#13608c'
+    color:'#13608c',
+  },
+  reviewImage:{
+    width:'100%',
+    height:180,
+    overflow:'hidden',
+    marginTop:15,
+    marginBottom:10,
+    position:'relative'
+  },
+  reviewContent:{
+    width:'60%',
+    position:'absolute',
+    right:10,
+    bottom:-5,
+    backgroundColor:'#fff',
+    borderRadius:15,
+    padding:20,
+  },
+  reviewTitle:{
+    fontSize:18,
+    fontWeight:600,
+    color:'#13608c',
+    paddingTop:10,
+    borderTopWidth:1,
+    borderTopColor:'#13608c',
+    borderStyle:'dashed',
   },
   reviewText:{
-    fontSize:15,
-    marginTop:8,
+    fontSize:14,
+    marginTop:12,
+    paddingBottom:10,
+    borderBottomWidth:1,
+    borderBottomColor:'#13608c',
+    borderStyle:'dashed',
   },
   reviewUser:{
-    marginTop:8,
+    marginTop:6,
     flexDirection:'row',
     alignItems:'center',
+    justifyContent:'flex-end'
   },
   reviewIcon:{
-    width:20,
-    height:20,
+    width:15,
+    height:15,
     marginRight:5
   }, 
   reviewUserName:{
     fontSize:14,
     color:'#839DA9'
+  },
+  runWrap:{
+    width:'90%',
+    marginTop:35,
+  },
+  runBox:{
+    height:120,
+    position:'relative',
+    borderRadius:15,
+    overflow:'hidden',
+    marginTop:15
+  },
+  runImage:{
+    width:'100%',
+    height:120,
+    position:'absolute',
+    top:0,
+    left:0
+  },
+  runTextBox:{
+    position:'absolute',
+    bottom:5,
+    right:5,
+    paddingVertical:10,
+    paddingHorizontal:20,
+    borderRadius:30,
+    backgroundColor:'#ffffffe6'
+  },
+  runTitle:{
+    fontSize:18,
+    fontWeight:600,
+    color:'#13608c',
+  },
+  runCount:{
+    fontSize:14,
+    fontWeight:600,
+    color:'#13608c',
+    textAlign:'right',
+    marginBottom:3
   },
 })
 
